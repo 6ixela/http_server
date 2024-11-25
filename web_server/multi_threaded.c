@@ -164,7 +164,7 @@ void* worker(void* arg)
             if (strcmp(resource, "") == 0)
             {
                 resource = realloc(resource, 50);
-                strcpy(resource, "new_player.html");
+                strcpy(resource, "index.html");
             }
             g_string_append(str, resource);
             
@@ -177,7 +177,7 @@ void* worker(void* arg)
                 
                 send(cfd, "HTTP/1.1 200 OK\r\n\r\n", 19, MSG_MORE);
                 write(cfd, contents, length);
-                g_print("%i: = %s\n", cfd, resource);
+                g_print("[ Socket: %i\nGetting: %s ]\n", cfd, resource);
                 g_free(contents);
                 free(resource);
             }
@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
     sfd = init_server(&hint, &res, argv[1]);
 
     printf("Static server\n");
-    printf("Listening to port 2048...\n");
+    printf("Listening to port %s...\n", argv[1]);
 
     while(TRUE)
     {

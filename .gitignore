@@ -52,4 +52,5 @@ Mkfile.old
 dkms.conf
 
 *.zip
-multi_threaded
+http_server
+test

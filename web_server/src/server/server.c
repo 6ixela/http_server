@@ -1,3 +1,5 @@
+#include "server.h"
+
 #define _GNU_SOURCE
 
 #include <err.h>
@@ -193,7 +195,7 @@ void* worker(void* arg)
 	return NULL;
 }
 
-void rewrite(int fd, const void* buf, size_t count)
+void rewrite(int fd, const char* buf, size_t count)
 {
     ssize_t total = 0;
     while (total < (ssize_t) count)
@@ -205,14 +207,8 @@ void rewrite(int fd, const void* buf, size_t count)
     }
 }
 
-int main(int argc, char* argv[])
+void start_server(config *conf)
 {
-    if (argc != 2)
-    {
-        errx(EXIT_FAILURE, "Usage:\n"
-                "Arg 1 = Port number (e.g. 2048)");
-    }
-
     struct addrinfo hint;
     struct addrinfo* res;
 
@@ -231,10 +227,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    sfd = init_server(&hint, &res, argv[1]);
+    sfd = init_server(&hint, &res, conf->port);
 
     printf("Static server\n");
-    printf("Listening to port %s...\n", argv[1]);
+    printf("Listening to port %s...\n", conf->port);
 
     while(TRUE)
     {
@@ -246,5 +242,4 @@ int main(int argc, char* argv[])
         shared_queue_push(sharedQueue, cfd);
     }
     close(sfd);
-    return 0;
 }

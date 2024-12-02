@@ -1,0 +1,4 @@
+server_name = images
+port = 2048
+ip = 127.0.0.1
+root_dir = www

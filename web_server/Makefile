@@ -1,18 +1,19 @@
-CC = gcc
-CFLAGS = `pkg-config --cflags glib-2.0` -Wall -Wextra -pthread
-LDLIBS = `pkg-config --libs glib-2.0`
+export CC = gcc
+export CFLAGS = `pkg-config --cflags glib-2.0` -Wall -Wextra -pthread -Werror -Wvla -std=c99 -pedantic -fsanitize=address -g
+export CPPFLAGS = -Isrc -Iinclude
+export LDFLAGS = -fsanitize=address
+export LDLIBS = `pkg-config --libs glib-2.0`
 
-EXE = multi_threaded
+EXE = http_server
 
-all: ${EXE}
+all: $(EXE)
 
-multi_threaded: multi_threaded.o queue.o shared_queue.o
+$(EXE):
+	$(MAKE) -C src
+	mv src/$(EXE) .
 
-shared_queue.o: shared_queue.c shared_queue.h queue.o
-queue.o: queue.c queue.h
-
-.PHONY: clean
+.PHONY: all
 
 clean:
-	${RM} *.o
-	${RM} ${EXE}
+	$(RM) $(EXE)
+	$(MAKE) -C src clean

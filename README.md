@@ -32,18 +32,33 @@ To compile and run the server, follow these steps:
 1. **Navigate to the server directory:**
    ```bash 
    cd web_server
-
+   ```
 2. **Build the project:**
     ```bash
     make
-
+    ```
 3. **Run the server:**
-By default, the program uses the `config.txt` file located in the `web_server` directory. But you can use a different configuration file. You can specify it as an argument when launching the server, like so:
+    ```bash
+    ./http_server [-d] [-a (start | stop | restart)]
+    ```
+Where:
+  - `-d` or `--daemon`: Run the server as a daemon.
+  - `-a` or `--action`: Control the server action.
+By default, the server uses the `config.txt` file in the `web_server` directory for its configuration.
+<!-- but you can specify an alternative file by providing its path as an argument -->
 
-    ./http_server [config_file]
+### 2. Example
+For example, to start the server with default configuration:
+  ```bash
+  ./http_server -a start
+  ```
+Or run it as a background:
+  ```bash
+  ./http_server -d -a start
+  ```
 
 ## Configuration
-The web server can be configured using the `config.txt` file located in the web_server directory. This file allows you to specify various server settings, such as server parameters, file paths, and other options.
+The web server can be configured using the `config.txt` file located in the `web_server` directory.
 
 Here’s an example configuration entry in the `config.txt` file:
 ```text 
@@ -51,3 +66,4 @@ server_name = my_server
 port = 2048
 ip = 127.0.0.1
 root_dir = www
+

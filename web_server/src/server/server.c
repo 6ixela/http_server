@@ -3,6 +3,7 @@
 #define _GNU_SOURCE
 
 #include <err.h>
+#include <errno.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,7 @@
 #include <unistd.h>
 #include <glib-2.0/glib.h>
 #include <err.h>
+#include <signal.h>
 
 #include "shared_queue.h"
 
@@ -138,6 +140,18 @@ static GString* get_message(int cfd, ssize_t* val)
     return gstr;
 }
 
+static void rewrite(int fd, const char* buf, size_t count)
+{
+    ssize_t total = 0;
+    while (total < (ssize_t) count)
+    {
+        ssize_t written = write(fd, buf + total, count-total);
+        if (written == -1)
+            errx(1,"rewrite failed\n");
+        total += written;
+    }
+}
+
 void* worker(void* arg)
 {
     shared_queue *queue = arg;
@@ -153,6 +167,7 @@ void* worker(void* arg)
             if(k == 0)
             {
                 close(cfd);
+                g_string_free(gstr, 1);
                 continue;
             }
 
@@ -166,19 +181,15 @@ void* worker(void* arg)
             if (strcmp(resource, "") == 0)
             {
                 resource = realloc(resource, 50);
+                // TODO: get the default file in config
                 strcpy(resource, "index.html");
             }
             g_string_append(str, resource);
             
             if (g_file_get_contents(str->str, &contents, &length, &error))
-            {
-                if (strcmp("slow.html", resource) == 0)
-                {
-                    sleep(3);
-                }
-                
+            {                
                 send(cfd, "HTTP/1.1 200 OK\r\n\r\n", 19, MSG_MORE);
-                write(cfd, contents, length);
+                rewrite(cfd, contents, length);
                 g_print("[ Socket: %i\nGetting: %s ]\n", cfd, resource);
                 g_free(contents);
                 free(resource);
@@ -188,23 +199,12 @@ void* worker(void* arg)
                 send_404(cfd);
                 g_error_free(error);
             }
+            g_string_free(str, 1);
             close(cfd);
         }
 	}
 
 	return NULL;
-}
-
-void rewrite(int fd, const char* buf, size_t count)
-{
-    ssize_t total = 0;
-    while (total < (ssize_t) count)
-    {
-        ssize_t written = write(fd, buf + total, count-total);
-        if (written == -1)
-            errx(1,"rewrite failed\n");
-        total += written;
-    }
 }
 
 void start_server(config *conf)
@@ -232,14 +232,23 @@ void start_server(config *conf)
     printf("Static server\n");
     printf("Listening to port %s...\n", conf->port);
 
-    while(TRUE)
+    while(conf->stop == 0)
     {
         int cfd = accept(sfd, NULL, NULL);
         if(cfd == -1)
         {
+            if (errno == EINTR)
+            {
+                continue;
+            }
             errx(EXIT_FAILURE, "[ERROR] accept\n");
         }
         shared_queue_push(sharedQueue, cfd);
     }
     close(sfd);
+}
+
+void stop_server(config *conf)
+{
+    kill(conf->stop, SIGINT);
 }

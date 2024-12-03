@@ -1,6 +1,6 @@
 #ifndef DAEMON_H
 #define DAEMON_H
 
-void create_daemon();
+int create_daemon(int *stop_while);
 
 #endif /* DAEMON_H */

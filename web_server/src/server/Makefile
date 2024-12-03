@@ -1,7 +1,7 @@
 include ../flags.mk
 
 MODULE = server
-OBJ = $(MODULE).o queue.o shared_queue.o
+OBJ = $(MODULE).o queue.o shared_queue.o action.o
 LIB = lib$(MODULE).a
 
 LIBS = libconfig.a

@@ -93,14 +93,68 @@ static int parse_file(char *file_name, config *conf)
     return err;
 }
 
+static int get_action_enum(config *conf, char *action)
+{
+    if (strcmp(action, "start") == 0)
+    {
+        conf->action = START;
+    }
+    else if (strcmp(action, "stop") == 0)
+    {
+        conf->action = STOP;
+    }
+    else if (strcmp(action, "restart") == 0)
+    {
+        conf->action = RESTART;
+    }
+    else
+    {
+        return ERROR;
+    }
+    return SUCCESS;
+}
+
+static int parse_args(int argc, char *argv[], config *conf)
+{
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "--daemon") == 0 ||
+            strcmp(argv[i], "-d") == 0)
+        {
+            conf->daemon = TRUE;
+        }
+        else if (strcmp(argv[i], "--action") == 0 ||
+                 strcmp(argv[i], "-a") == 0)
+        {
+            i++;
+            if (i >= argc)
+            {
+                perror("[ERROR][parse_args] --action requires an argument");
+                return 1;
+            }
+            if (get_action_enum(conf, argv[i]) == ERROR)
+            {
+                perror("[ERROR][parse_args] --action (start | stop | restart)");
+                return 1;
+            }
+        }
+    }
+    if (conf->action == NO_ACTION && conf->daemon == TRUE)
+    {
+        perror("[ERROR][parse_args] --action requires an argument for daemon mode");
+        return 1;
+    }
+    
+    return 0;
+}
+
 int create_config(config *conf, int argc, char *argv[])
 {
     char file_name[64] = "config.txt";
 
-    if (argc == 2)
+    if (parse_args(argc, argv, conf) == 1)
     {
-        strcpy(file_name, argv[1]);
+        return ERROR;
     }
-    int err = parse_file(file_name, conf);
-    return err;
+    return parse_file(file_name, conf);
 }

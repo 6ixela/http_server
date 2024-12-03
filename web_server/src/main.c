@@ -1,5 +1,6 @@
 #include "config/config.h"
 #include "server/server.h"
+#include "server/action.h"
 
 #include <stdio.h>
 
@@ -11,6 +12,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    start_server(&conf);
+    action act = {NULL};
+    get_action(&conf, &act);
+    if (act.action != NULL)
+    {
+        act.action(&conf);
+    }
     return 0;
 }
